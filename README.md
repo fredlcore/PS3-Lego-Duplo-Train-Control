@@ -39,7 +39,7 @@ Currently, the following features are supported:
 This should be possible without too much effort. You can use `PS3LegoinoControl.ino` straight away and just rewrite `DuploTrainControl.ino` to fit your needs based on the examples in the Legoino project. The variables `speed` and `button` in `DuploTrainControl.ino` contain the speed and the (symbol) buttons pressed and you can just call other functions of the Legoino framework to make it work with other Lego devices supported by Legoino. Support for left and right movements of the analog stick or D-pad would have to be added in `PS3LegoinoControl.ino`, though.
 
 ## ToDo
+* Deal with color detection: Currently, the sensor is over-sensitive and any change in floor texture results in a color detection action, therefore currently disabled.
 * Remotely turn off the train through the PS3 controller
 * Use buttons to change the train's lights
-* Test if green "reverse" tile needs to be implemented in DuploTrainControl
 * Support more buttons / stick movements
