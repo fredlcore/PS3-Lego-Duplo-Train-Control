@@ -13,7 +13,7 @@ Once you have found out the controller's Bluetooth address, enter it in the top 
 
 ## Installation
 * Take the two ESP32 boards and flash `PSLegoinoControl.ino` on one board and `DuploTrainControl.ino` on the other. It doesn't matter which is which. 
-* Then connect 5V/VIN, GND and GPIOs 16 and 17 between both boards in a 1:1 way, no need to cross pins 16 and 17. When using the Wemos-style ESP32 boards, you can stack the two boards 1:1 on top of each other. 
+* Then connect 5V/VIN, GND and GPIOs 16 and 17 between both boards in a 1:1 way, no need to cross pins 16 and 17. When using the Wemos-style ESP32 boards, you can stack the two boards 1:1 on top of each other using the two inner pin rows. 
 * If you still want to be able to use the serial monitor when both boards are plugged together, do not connect the RXD/TXD pins.
 
 ## Getting started
