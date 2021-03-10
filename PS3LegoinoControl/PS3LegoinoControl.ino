@@ -1,3 +1,10 @@
+/* PS3Legoino Control
+   Connects to a PS3 game pad and sends stick and button status via serial UART to a second ESP32 running DuploTrainControl.ino
+   (C) 2021 by Frederik Holst
+   
+   Based on the awesome ESP32-PS3 library: https://github.com/jvpernis/esp32-ps3
+*/
+
 #include <Ps3Controller.h>
 
 // Enter the Bluetooth-Address of your PS3 controller here
