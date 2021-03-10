@@ -47,13 +47,17 @@ void colorSensorCallback(void *hub, byte portNumber, DeviceType deviceType, uint
     Serial.print("Scanned color: ");
     Serial.println(COLOR_STRING[scanned_color]);
     myHub->setLedColor((Color)scanned_color);
+/*
     if (scanned_color == (byte)RED) {
       myHub->playSound((byte)DuploTrainBaseSound::BRAKE);
     } else if (scanned_color == (byte)BLUE) {
       myHub->playSound((byte)DuploTrainBaseSound::WATER_REFILL);
     } else if (scanned_color == (byte)YELLOW) {
       myHub->playSound((byte)DuploTrainBaseSound::HORN);
+    } else if (scanned_color == (byte)GREEN) {
+      speed = -speed;
     }
+*/
   }
 }
 
