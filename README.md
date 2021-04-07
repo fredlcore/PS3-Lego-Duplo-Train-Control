@@ -1,6 +1,8 @@
 # PS3-Lego-Duplo-Train-Control
 Control a Lego Duplo train with a PS3 game pad
 
+*Disclaimer*: LEGO® is a trademark of the LEGO Group of companies which does not sponsor, authorize or endorse this project.
+
 This project enables you to use your PS3 game pad together with two ESP32 boards to control one or more Lego Duplo trains (10874 / 10875) using the analog sticks, the D-pad and the symbol buttons. It is based on the two awesome libraries [Legoino](https://github.com/corneliusmunz/legoino) and [ESP32-PS3](https://github.com/jvpernis/esp32-ps3) which you need to install through the Arduino IDE prior to proceeding.  
   
 Since both libraries use different Bluetooth libraries, it is unfortunately currently still necessary to separate the PS3 and the Lego connection. Therefore, two ESP32 microcontroller boards are necessary for the two functions. However, you can easily stack two boards on top of each other and only one board needs to be powered. If you don't have a PS3 controller, you can also control your train(s) via a terminal from your computer. In that case, you only need one ESP32.
