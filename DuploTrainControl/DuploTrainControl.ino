@@ -20,7 +20,7 @@
 #include "Lpf2Hub.h"
 
 // create hub instances
-#define HUBS 2
+#define HUBS 3
 Lpf2Hub* myHubs[HUBS];
 Lpf2Hub* myHub;
 bool activeHubs[HUBS] = { false };
