@@ -10,14 +10,13 @@
 // Enter the Bluetooth-Address of your PS3 controller here
 const char PS3Address[] = "08:6d:41:ba:7d:5f";
 
-int8_t speed = 0;
-int8_t old_speed = 0;
+int speed = 0;
+int old_speed = 0;
 uint8_t button = 0;
 uint8_t old_button = 0;
 bool analog_control = false;
 
-void notify()
-{
+void notify() {
   if(Ps3.event.button_down.cross) {
     Ps3.setRumble(100.0, 100);
     speed = 0;
@@ -27,22 +26,25 @@ void notify()
   }
 }
 
-void onConnect(){
+void onConnect() {
   Serial.println("Connected.");
+  Ps3.setRumble(100.0, 500);
+  delay(500);
+  Ps3.setRumble(0.0, 0);
 }
 
-void setup()
-{
-    Serial.begin(115200);
-    Serial1.begin(115200, SERIAL_8N1, 17, 16);
+void setup() {
+  delay(3000);
+  Serial.begin(115200);
+  Serial1.begin(115200, SERIAL_8N1, 17, 16);
 
-    Serial.println("Starting PS3 Remote Control for Legoino...");
+  Serial.println("Starting PS3 Remote Control for Legoino...");
 
-    Ps3.attach(notify);
-    Ps3.attachOnConnect(onConnect);
-    Ps3.begin(PS3Address);
+  Ps3.attach(notify);
+  Ps3.attachOnConnect(onConnect);
+  Ps3.begin(PS3Address);
 
-    Serial.println("Ready.");
+  Serial.println("Ready.");
 }
 
 void loop() {
@@ -59,21 +61,18 @@ void loop() {
     }
     speed = -speed;
   }
-  if (Ps3.data.button.up) {
-    speed = speed+1;
-    analog_control = false;
-  }
-  if (Ps3.data.button.down) {
-    speed = speed-1;
-    analog_control = false;
-  }
+
   if (speed < -120) speed = -120;
   if (speed > 120) speed = 120;
 
   button = Ps3.data.button.triangle + \
            (Ps3.data.button.circle << 1) + \
            (Ps3.data.button.cross << 2) + \
-           (Ps3.data.button.square << 3);
+           (Ps3.data.button.square << 3) + \
+           (Ps3.data.button.select << 4) + \
+           (Ps3.data.button.start << 5) + \ 
+           (Ps3.data.button.up << 6) + \ 
+           (Ps3.data.button.down << 7); 
 
   if (old_speed != speed || old_button != button) {
     Serial.print(speed);
