@@ -3,7 +3,7 @@
  * Based on the awesome Legoino library: https://github.com/corneliusmunz/legoino
  *
  * Start/reset the ESP32 and your train and the serial monitor of the 
- * Arduin IDE. Once the train is connected, you can control it via the
+ * Arduino IDE. Once the train is connected, you can control it via the
  * following keys:
  * 
  * "1...9" - Select active train
@@ -11,6 +11,8 @@
  * "-"     - Decrease speed
  * " "     - Stop the train
  * "X"     - Turn off the train
+ * 
+ * See PS3LegoinoControl for how to control the train via a PS3 controller
  * 
  * (c) Copyright 2021 - Frederik Holst
  * Released under MIT License
