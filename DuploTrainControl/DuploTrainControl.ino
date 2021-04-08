@@ -12,7 +12,7 @@
  * " "     - Stop the train
  * "X"     - Turn off the train
  * 
- * (c) Copyright 2021 - Fredrik Holst
+ * (c) Copyright 2021 - Frederik Holst
  * Released under MIT License
  * 
  */
