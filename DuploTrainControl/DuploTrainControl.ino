@@ -34,6 +34,9 @@ bool analog_control[HUBS] = { 0 };
 int analog_speed = 0;
 int parsed_speed[HUBS] = { 0 };
 int old_parsed_speed[HUBS] = { 0 };
+int saved_speed[HUBS] = { 0 };
+int fillup_stage[HUBS] = { 0 };
+unsigned long fillup_timer[HUBS] = { 0 };
 int button = 0;
 int old_button = 0;
 char c = 0;
@@ -61,20 +64,17 @@ void colorSensorCallback(void *hub, byte portNumber, DeviceType deviceType, uint
     if (scanned_color == (byte)RED) {
       speed[callback_hub] = 0;
       setSound(0, myHub);
-      delay(200);
     } else if (scanned_color == (byte)BLUE) {
-      int8_t saved_speed = speed[callback_hub];
+      fillup_stage[callback_hub] = 1;
+      saved_speed[callback_hub] = speed[callback_hub];
+      fillup_timer[callback_hub] = millis();
       speed[callback_hub] = 0;
-      setSound(4, myHub);
-      delay(2000);
-      setSound(2, myHub);
-      delay(4000);
-      speed[callback_hub] = saved_speed;
     } else if (scanned_color == (byte)YELLOW) {
       setSound(3, myHub);
     } else if (scanned_color == (byte)GREEN) {
       speed[callback_hub] = -speed[callback_hub];
       setSound(1, myHub);
+      test
     }
     last_color_change = millis();
   }
@@ -104,6 +104,7 @@ void move(int speed, Lpf2Hub *hub) {
   if (speed < -78) speed = -78;
   if (speed > 79) speed = 79;
   if (speed == 0 && parsed_speed[activeHub] == 0) {} else {
+      Serial.print(speed);
     myHub->setBasicMotorSpeed(motorPort, speed);
   }
   delay(50);
@@ -158,9 +159,25 @@ int8_t nextHub(int8_t hub) {
 
 void shutdown(int8_t hub) {
   myHubs[hub]->shutDownHub(); 
-  delay(1000); 
-  myHubs[activeHub]->init(); 
-  delay(1000); 
+  delay(1000);
+}
+
+// If train moves over a blue tile ("fill up"), then first play steam sound, wait, play fill-up sound, resume original speed.
+void processFillup(int8_t hub) {  
+  delay(50);
+  if (fillup_stage[hub] == 1) {
+    setSound(4, myHub);
+    fillup_stage[hub] = 2;
+  }
+  if (fillup_stage[hub] == 2 && millis() - fillup_timer[hub] > 2000) {
+    fillup_timer[hub] = millis();
+    setSound(2, myHub);
+    fillup_stage[hub] = 3;
+  }
+  if (fillup_stage[hub] == 3 && millis() - fillup_timer[hub] > 4000) {
+    speed[hub] = saved_speed[hub];
+    fillup_stage[hub] = 0;
+  }
 }
 
 void setup() {
@@ -168,8 +185,6 @@ void setup() {
   Serial.begin(115200);
   Serial1.begin(115200, SERIAL_8N1, 16, 17);
   Serial.print("Initializing...");
-//  myHub.init("18:04:ed:ea:4d:67");  // Dampflok
-//  myHub.init("a4:da:32:04:ef:7a");  // Güterzug
   for (int x=0; x<HUBS; x++) {
     myHubs[x] = new Lpf2Hub;
     myHubs[x]->init();
@@ -227,6 +242,7 @@ void loop() {
         c = Serial.read();
         // Discard control characters, otherwise print character
         if (c > 31) Serial.println(c);
+        idle_timer = millis();
       }
 
       // Read buttons and movements from PS3 controller via Serial1
@@ -285,6 +301,8 @@ void loop() {
       if (speed[activeHub]<-120) speed[activeHub]=-120;
       if (abs(speed[activeHub])<2) speed[activeHub]=0;
       move(speed[hub], myHub);
+
+      if (fillup_stage[hub] > 0) processFillup(hub);
     } else {
       if (myHub->isScanning() == false && myHub->isConnecting() == false && myHub->isConnected() == false) {
         activeHubs[hub] = false;
@@ -306,9 +324,12 @@ void loop() {
   if (millis() - idle_timer > 300000 && activeHub > -1) {
     Serial.println("Idle time exceeded, shutting down hubs...");
     for (int i=0; i<HUBS; i++) {
-      Serial.println(i);
-      shutdown(i);
+      if (myHubs[i]->isConnected()) {
+        Serial.println(i);
+        shutdown(i);
+      }
     }
+    idle_timer = millis();
   }
 
   delay(10);
