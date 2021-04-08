@@ -1,6 +1,6 @@
 /**
  * A Legoino example to control a Duplo Train hub
- * Based on the awesome Legoino library: https://github.com/jvpernis/esp32-ps3
+ * Based on the awesome Legoino library: https://github.com/corneliusmunz/legoino
  *
  * Start/reset the ESP32 and your train and the serial monitor of the 
  * Arduin IDE. Once the train is connected, you can control it via the
