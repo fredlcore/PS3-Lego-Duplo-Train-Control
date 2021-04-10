@@ -32,6 +32,8 @@ int8_t saved_speed[HUBS] = { 0 };
 
 int8_t fillup_stage[HUBS] = { 0 };
 unsigned long fillup_timer[HUBS] = { 0 };
+bool tile_override[HUBS] = { 0 };
+unsigned long tile_override_timer[HUBS] = { 0 };
 
 // Color LedColors[] = {BLACK, PINK, PURPLE, BLUE, LIGHTBLUE, CYAN, GREEN, YELLOW, ORANGE, RED, WHITE, NONE};
 // byte Sounds[] = {(byte)DuploTrainBaseSound::BRAKE, (byte)DuploTrainBaseSound::STATION_DEPARTURE, (byte)DuploTrainBaseSound::WATER_REFILL, (byte)DuploTrainBaseSound::HORN, (byte)DuploTrainBaseSound::STEAM};
@@ -39,34 +41,48 @@ unsigned long fillup_timer[HUBS] = { 0 };
 void colorSensorCallback(void *hub, byte portNumber, DeviceType deviceType, uint8_t *pData) {
   Lpf2Hub *myHub = (Lpf2Hub *)hub;
   static unsigned long last_color_change = millis();
+  static int8_t last_color[HUBS] = { 0 };
 
-  if (deviceType == DeviceType::DUPLO_TRAIN_BASE_COLOR_SENSOR && millis() - last_color_change > 3000) {
+  if (deviceType == DeviceType::DUPLO_TRAIN_BASE_COLOR_SENSOR) {
     int8_t callback_hub = -1;
     for (int8_t i=0; i<HUBS; i++) {
       if (myHubs[i] == myHub) {
         callback_hub = i;
       }
     }
-    int8_t scanned_color = myHub->parseColor(pData);
+    int scanned_color = myHub->parseColor(pData);
     Serial.print("Scanned color: ");
     Serial.println(COLOR_STRING[scanned_color]);
-    if (scanned_color == (byte)RED) {
-      speed[callback_hub] = 0;
-      setSound(DuploTrainBaseSound::BRAKE, myHub);
-    } else if (scanned_color == (byte)BLUE) {
-      fillup_stage[callback_hub] = 1;
-      saved_speed[callback_hub] = speed[callback_hub];
-      fillup_timer[callback_hub] = millis();
-      speed[callback_hub] = 0;
-    } else if (scanned_color == (byte)YELLOW) {
-      setSound(DuploTrainBaseSound::HORN, myHub);
-    } else if (scanned_color == (byte)GREEN) {
-      speed[callback_hub] = -speed[callback_hub];
-      setSound(DuploTrainBaseSound::STATION_DEPARTURE, myHub);
-    } else if (scanned_color == (byte)WHITE) {
-      setColor(WHITE, myHub);
+
+    if (millis() - last_color_change > 3000 || (scanned_color != last_color[callback_hub] && scanned_color < 255)) {
+      last_color[callback_hub] = scanned_color;
+      if (scanned_color == (byte)RED) {
+        // Red tile (brake): stop and play brake sound
+        speed[callback_hub] = 0;
+        setSound(DuploTrainBaseSound::BRAKE, myHub);
+        tile_override[callback_hub] = true;
+        tile_override_timer[callback_hub] = millis();
+      } else if (scanned_color == (byte)BLUE) {
+        // Blue tile (water): stop, play steam sound once, play fillup sound thrice, resume original speed
+        fillup_stage[callback_hub] = 1;
+        saved_speed[callback_hub] = speed[callback_hub];
+        fillup_timer[callback_hub] = millis();
+        speed[callback_hub] = 0;
+      } else if (scanned_color == (byte)YELLOW) {
+        // Yellow tile (horn): play horn sound
+        setSound(DuploTrainBaseSound::HORN, myHub);
+      } else if (scanned_color == (byte)GREEN) {
+        // Green tile (reverse): play station departure sound, revert speed
+        speed[callback_hub] = -speed[callback_hub];
+        setSound(DuploTrainBaseSound::STATION_DEPARTURE, myHub);
+        tile_override[callback_hub] = true;
+        tile_override_timer[callback_hub] = millis();
+      } else if (scanned_color == (byte)WHITE) {
+        // White tile (light): Change light to white
+        setColor(WHITE, myHub);
+      }
+      last_color_change = millis();
     }
-    last_color_change = millis();
   }
 }
 
@@ -295,13 +311,14 @@ void loop() {
         }
         idle_timer = millis();
       }
-      if (analog_control[activeHub] == true) speed[activeHub] = analog_speed;
+      if (analog_control[activeHub] == true && fillup_stage[hub] == 0 && tile_override[hub] == false) speed[activeHub] = analog_speed;
       if (speed[activeHub]>120) speed[activeHub]=120;
       if (speed[activeHub]<-120) speed[activeHub]=-120;
       if (abs(speed[activeHub])<2) speed[activeHub]=0;
       move(speed[hub], myHub);
 
       if (fillup_stage[hub] > 0) processFillup(hub);
+      if (tile_override[hub] == true && millis() - tile_override_timer[hub] > 3000) tile_override[hub] = false;  // Tile action overrides analog stick for 3 seconds
     } else {
       if (myHub->isScanning() == false && myHub->isConnecting() == false && myHub->isConnected() == false) {
         activeHubs[hub] = false;
